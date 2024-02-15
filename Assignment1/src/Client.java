@@ -15,7 +15,7 @@ import java.util.InputMismatchException;
  * @author Kerly Titus
  */
 
-public class Client { 
+public class Client extends Thread{ 
     
     private static int numberOfTransactions;   		/* Number of transactions to process */
     private static int maxNbTransactions;      		/* Maximum number of transactions */
@@ -212,7 +212,29 @@ public class Client {
     {   
     	Transactions transact = new Transactions();
     	long sendClientStartTime, sendClientEndTime, receiveClientStartTime, receiveClientEndTime;
-    
+    	
     	/* Implement here the code for the run method ... */
+    	
+    	while(objNetwork.getInBufferStatus()=="full"||objNetwork.getOutBufferStatus()=="empty") { /*yield the CPU if the inBufferStatus is full or the outBufferStatus is empty*/
+    		Thread.yield();
+    	}
+    	
+    	if(getClientOperation().equals("sending")){
+    		sendClientStartTime = System.currentTimeMillis(); 
+    		sendTransactions();
+    		sendClientEndTime = System.currentTimeMillis();
+    		
+    	} else if (getClientOperation().equals("receiving")){
+    		receiveClientStartTime = System.currentTimeMillis();
+    		receiveTransactions(transact);
+    		receiveClientEndTime = System.currentTimeMillis(); 
+    		
+    	} else {
+    		System.out.println("Wrong client operation type:(");
+    		System.exit(1);
+    	}
+    	//Client continuously reads transactions from a file, send then to the server via network,
+    	//processes them, and send back updated transactions to the client via the network
+    	
     }
 }
