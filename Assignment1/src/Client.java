@@ -181,11 +181,13 @@ public class Client extends Thread{
          
          while (i < getNumberOfTransactions())
          {     
-        	 // while( objNetwork.getOutBufferStatus().equals("empty"));  	/* Alternatively, busy-wait until the network output buffer is available */
+        	while( objNetwork.getOutBufferStatus().equals("empty")) {
+        		Thread.yield();
+        	};  	/* Alternatively, busy-wait until the network output buffer is available */
                                                                         	
             objNetwork.receive(transact);                               	/* Receive updated transaction from the network buffer */
             
-            System.out.println("\n DEBUG : Client.receiveTransactions() - receiving updated transaction on account " + transact.getAccountNumber());
+            System.out.println("\n  DEBUG : Client.receiveTransactions() - receiving updated transaction on account " + transact.getAccountNumber());
             
             System.out.println(transact);                               	/* Display updated transaction */    
             i++;
@@ -209,18 +211,14 @@ public class Client extends Thread{
      * @param
      */
     public void run()
+    
     {   
     	Transactions transact = new Transactions();
     	long sendClientStartTime, sendClientEndTime, receiveClientStartTime, receiveClientEndTime;
-    	
     	/* Implement here the code for the run method ... */
-    	
-    	while(objNetwork.getInBufferStatus()=="full"||objNetwork.getOutBufferStatus()=="empty") { /*yield the CPU if the inBufferStatus is full or the outBufferStatus is empty*/
-    		Thread.yield();
-    	}
-    	
     	if(getClientOperation().equals("sending")){
     		sendClientStartTime = System.currentTimeMillis(); 
+    		System.out.println("DEBUG : Client.run() - starting client sending thread connected");
     		sendTransactions();
     		sendClientEndTime = System.currentTimeMillis();
     		
@@ -233,6 +231,7 @@ public class Client extends Thread{
     		System.out.println("Wrong client operation type:(");
     		System.exit(1);
     	}
+    	objNetwork.disconnect(objNetwork.getClientIP());
     	//Client continuously reads transactions from a file, send then to the server via network,
     	//processes them, and send back updated transactions to the client via the network
     	
