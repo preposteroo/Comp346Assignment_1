@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -260,7 +261,7 @@ public class Network extends Thread{
          
      /**
       *  Accessor method of Netowrk class
-     * 
+     *  
      * @return inputIndexServer
      * @param
      */
@@ -452,7 +453,7 @@ public class Network extends Thread{
      */
          public boolean transferIn(Transactions inPacket)
         {
-		System.out.println("\n DEBUG : Network.transferIn - account number " + inComingPacket[outputIndexServer].getAccountNumber());
+		System.out.println("\n DEBUG : Network.transferIn() - account number " + inComingPacket[outputIndexServer].getAccountNumber());
             inPacket.setAccountNumber(inComingPacket[outputIndexServer].getAccountNumber());
             inPacket.setOperationType(inComingPacket[outputIndexServer].getOperationType());
             inPacket.setTransactionAmount(inComingPacket[outputIndexServer].getTransactionAmount());
@@ -552,11 +553,15 @@ public class Network extends Thread{
     public void run()
     {	
     	System.out.println("\n DEBUG : Network.run() - starting network thread");
-    	
-    	while (getServerConnectionStatus().equals("connected")&& getClientConnectionStatus().equals("connected"))
-    	{
-    		Thread.yield();
-    	}    	
 
+        while (true) {
+            // Check if both client and server are disconnected
+            if (getClientConnectionStatus().equals("disconnected") && getServerConnectionStatus().equals("disconnected")) {
+                System.out.println("Terminating network thread - Client "+getClientConnectionStatus()+ " Server " + getServerConnectionStatus());
+                break; // Terminate the network thread
+            } else {
+                Thread.yield(); // Yield CPU if either client or server is still connected
+            }
+        }
     }
 }

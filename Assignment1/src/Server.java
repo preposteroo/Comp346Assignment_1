@@ -15,7 +15,7 @@ import java.util.InputMismatchException;
  * @author Kerly Titus
  */
 
-public class Server extends Thread{
+public class Server extends Thread {
   
 	int numberOfTransactions;         /* Number of transactions handled by the server */
 	int numberOfAccounts;             /* Number of accounts stored in the server */
@@ -192,11 +192,14 @@ public class Server extends Thread{
          /* Process the accounts until the client disconnects */
          while ((!objNetwork.getClientConnectionStatus().equals("disconnected")))
          { 
-        	  while( (objNetwork.getInBufferStatus().equals("empty"))) {
-        		Thread.yield();  /* Alternatively, busy-wait until the network input buffer is available */
-        	  };
-        	 
-        	 if (!objNetwork.getInBufferStatus().equals("empty"))
+        	while( (objNetwork.getInBufferStatus().equals("empty"))){
+                if(objNetwork.getClientConnectionStatus().equals("disconnected")){
+                    System.out.println("\n DEBUG : Server.processTransactions() - " + getNumberOfTransactions() + " accounts updated");
+                    return false;}
+        		Thread.yield();   /* Alternatively, busy-wait until the network input buffer is available */
+            
+                }
+        	if (!objNetwork.getInBufferStatus().equals("empty"))
         	 {
         		 System.out.println("\n DEBUG : Server.processTransactions() - transferring in account " + trans.getAccountNumber());
         		 
@@ -233,10 +236,10 @@ public class Server extends Thread{
                             System.out.println("\n DEBUG : Server.processTransactions() - Obtaining balance from account" + trans.getAccountNumber());
         				 } 
         		        		 
-        		 while( (objNetwork.getOutBufferStatus().equals("full"))) {
-        			 Thread.yield();
-        		 }; /* Alternatively,  busy-wait until the network output buffer is available */
-                                                           
+        		  while( (objNetwork.getOutBufferStatus().equals("full"))){
+                    
+        			Thread.yield(); /* Alternatively,  busy-wait until the network output buffer is available */
+                        }
         		 System.out.println("\n DEBUG : Server.processTransactions() - transferring out account " + trans.getAccountNumber());
         		 
         		 objNetwork.transferOut(trans);                            		/* Transfer a completed transaction from the server to the network output buffer */
@@ -312,20 +315,14 @@ public class Server extends Thread{
      */
     public void run()
     {   Transactions trans = new Transactions();
-    	long serverStartTime =0;
-    	long serverEndTime = 0;
-    	
-    		serverStartTime = System.currentTimeMillis();
-    		processTransactions(trans);
-    		serverEndTime = System.currentTimeMillis();
-
+    	long serverStartTime = 0, serverEndTime = 0;
     	System.out.println("\n DEBUG : Server.run() - starting server thread " + objNetwork.getServerConnectionStatus());
-    	
-    	/* Implement the code for the run method */
-    	objNetwork.disconnect(objNetwork.getServerIP());
-    	
-    	
+    	serverStartTime = System.currentTimeMillis();
+        if(!processTransactions(trans))
+            objNetwork.disconnect(objNetwork.getServerIP());;
+    	serverEndTime = System.currentTimeMillis();
         System.out.println("\n Terminating server thread - " + " Running time " + (serverEndTime - serverStartTime) + " milliseconds");
-           
+        
     }
 }
+
